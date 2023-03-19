@@ -115,29 +115,30 @@ END;
 
 
 
--- Most watched genre for shows and movies (Sci-Fi)
-WITH GenreMost AS (
-  SELECT Genre, COUNT(Genre) AS GenreTotal,ROW_NUMBER() OVER (ORDER BY COUNT(Genre) DESC) AS rn
+-- The date range of viewing history
+SELECT MIN(Date) as MinDate, MAX(Date) as MaxDate 
+FROM NetflixViewingHistory
+
+
+-- Favorite (most watched) genre for shows and movies
+SELECT Genre,GenreCount FROM (
+  SELECT Genre, COUNT(Genre) AS GenreCount,ROW_NUMBER() OVER (ORDER BY COUNT(Genre) DESC) AS rn
   FROM netflixviewinghistory
   GROUP BY Genre
 )
-SELECT Genre, GenreTotal
-FROM GenreMost
+FavGenre
 WHERE rn = 1
 
 
 -- Most watched tv show (Space Force)
- WITH ShowMost AS (
-  SELECT Title, Category,COUNT(Title) AS ShowTotal
-  FROM netflixviewinghistory
-  GROUP BY Title, Category
-)
-SELECT Title, Category, MAX(ShowTotal) AS TopShow
-FROM ShowMost
-WHERE ShowTotal = (SELECT MAX(ShowTotal) FROM ShowMost)
-and Category = 'Show'
-GROUP BY Title, Category;
-
+SELECT Title, ShowCount
+FROM (
+   SELECT Title, SUM(1) AS ShowCount, ROW_NUMBER() OVER (ORDER BY SUM(1) DESC) AS rn
+   FROM NetflixViewingHistory
+   WHERE Category = 'Show'
+   GROUP BY Title
+) MostWatched
+WHERE rn= 1
 
 
 -- Least watched genre for shows and movies (Crime)
@@ -146,23 +147,17 @@ WITH GenreLeast AS (
   FROM netflixviewinghistory
   GROUP BY Genre
 )
-SELECT Genre, GenreTotal
+SELECT Genre
 FROM genreleast
 WHERE rn = 1
 
 
--- Least watched tv show (Designated Survivor)
- WITH ShowLeast AS (
-  SELECT Title, Category,COUNT(Title) AS ShowTotal
-  FROM netflixviewinghistory
-  GROUP BY Title, Category
-)
-SELECT Title, Category, MIN(Showtotal) AS TopShow
-FROM ShowLeast
-WHERE Showtotal = (SELECT MIN(Showtotal) FROM ShowLeast)
-AND Category = 'Show'
-GROUP BY Title, Category;
-
+-- Least watched tv shows (Designated Survivor, exception, Friends from College, That 90's Show, The Recruit, TWD)
+ SELECT Title 
+ FROM netflixviewinghistory
+ WHERE Category = 'Show'
+ GROUP BY Title
+ HAVING COUNT(Title) < 2
 
 
 -- How many movies I've watched in 2023 (15)
@@ -173,11 +168,24 @@ AND YEAR(Date) = '2023'
 GROUP BY Category
 
 
--- Average number of shows and movies I watch a day (2)
-WITH AvgView AS (
+-- Average number of shows I watch a day (3)
+WITH ShowAVG AS (
   SELECT Date AS Viewing_Date, COUNT(Title) as TitleTotal
   FROM netflixviewinghistory
+  WHERE Category = 'Show'
   GROUP BY Date
   )
 SELECT AVG(TitleTotal) AS Average
-FROM AvgView;
+FROM ShowAVG
+;
+
+-- Average number of movies I watch a day (1)
+WITH MovieAVG AS (
+  SELECT Date AS Viewing_Date, COUNT(Title) as TitleTotal
+  FROM netflixviewinghistory
+  WHERE Category = 'Movie'
+  GROUP BY Date
+  )
+SELECT AVG(TitleTotal) AS Average
+FROM MovieAVG
+;
