@@ -8,11 +8,6 @@ FROM information_schema.columns
 WHERE table_name = 'netflixviewinghistory'
 
 
--- Changing data type for date column from datetime to date
-ALTER TABLE netflixviewinghistory
-ALTER COLUMN Date DATE
-
-
 --Updating the table with additional columns for season and episode name
 ALTER TABLE netflixviewinghistory
 ADD "Season" VARCHAR(255);
