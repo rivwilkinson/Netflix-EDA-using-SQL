@@ -35,8 +35,6 @@ Season =
     CASE 
         WHEN CHARINDEX(':', title, CHARINDEX(':', title) + 1) > 0 
             THEN SUBSTRING(title, CHARINDEX(':', title, CHARINDEX(':', title) + 1) + 1, LEN(title)) 
-        WHEN CHARINDEX(':', title) > 0 
-            THEN SUBSTRING(title, CHARINDEX(':', title) + 1, LEN(title)) 
         ELSE '' 
     END;
 
