@@ -119,12 +119,11 @@ FROM NetflixViewingHistory
 
 
 -- Favorite (most watched) genre for shows and movies
-SELECT Genre,GenreCount FROM (
-  SELECT Genre, COUNT(Genre) AS GenreCount,ROW_NUMBER() OVER (ORDER BY COUNT(Genre) DESC) AS rn
-  FROM netflixviewinghistory
-  GROUP BY Genre
-)
-FavGenre
+SELECT Genre,GenreCount 
+FROM (SELECT Genre, COUNT(Genre) AS GenreCount,ROW_NUMBER() OVER (ORDER BY COUNT(Genre) DESC) AS rn
+      FROM netflixviewinghistory
+      GROUP BY Genre
+     ) FavGenre
 WHERE rn = 1
 
 
@@ -140,19 +139,17 @@ WHERE rn= 1
 
 
 -- Least watched genre for shows and movies (Crime)
-WITH GenreLeast AS (
+SELECT * FROM (
   SELECT Genre, COUNT(genre) AS GenreTotal,ROW_NUMBER() OVER (ORDER BY COUNT(Genre)) AS rn
-  FROM netflixviewinghistory
+  FROM NetflixViewingHistory
   GROUP BY Genre
-)
-SELECT Genre
-FROM genreleast
+) LeastWatched 
 WHERE rn = 1
 
 
 -- Least watched tv shows (Designated Survivor, exception, Friends from College, That 90's Show, The Recruit, TWD)
  SELECT Title 
- FROM netflixviewinghistory
+ FROM NetflixViewingHistory
  WHERE Category = 'Show'
  GROUP BY Title
  HAVING COUNT(Title) < 2
@@ -160,30 +157,17 @@ WHERE rn = 1
 
 -- How many movies I've watched in 2023 (15)
 SELECT Category,COUNT(Title) AS MovieTotal
-FROM netflixviewinghistory
+FROM NetflixViewingHistory
 WHERE Category = 'Movie'
 AND YEAR(Date) = '2023'
 GROUP BY Category
 
 
--- Average number of shows I watch a day (3)
-WITH ShowAVG AS (
-  SELECT Date AS Viewing_Date, COUNT(Title) as TitleTotal
-  FROM netflixviewinghistory
-  WHERE Category = 'Show'
-  GROUP BY Date
-  )
-SELECT AVG(TitleTotal) AS Average
-FROM ShowAVG
-;
+-- Average number of shows/movies I watch a day (4)
+SELECT AVG(Title_Count) as Average
+FROM (SELECT date as Viewing_Date,
+      COUNT(Title) as Title_Count
+      FROM  NetflixViewingHistory
+      GROUP BY Date
+     ) AS Title_AVG;
 
--- Average number of movies I watch a day (1)
-WITH MovieAVG AS (
-  SELECT Date AS Viewing_Date, COUNT(Title) as TitleTotal
-  FROM netflixviewinghistory
-  WHERE Category = 'Movie'
-  GROUP BY Date
-  )
-SELECT AVG(TitleTotal) AS Average
-FROM MovieAVG
-;
